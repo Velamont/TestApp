@@ -2,7 +2,7 @@
 
 namespace TestApp;
 
-public class MessageReader
+public class MessageReader : IMessageReader
 {
     private readonly Stream _stream;
     private readonly byte _delimiter;
@@ -15,9 +15,11 @@ public class MessageReader
 
     public string ReadMessage()
     {
-        using (var messageStream = new MemoryStream())
+        using (var reader = new StreamReader(_stream, Encoding.UTF8, leaveOpen: true))
         {
+            var stringBuilder = new StringBuilder();
             int currentByte;
+
             while ((currentByte = _stream.ReadByte()) != -1)
             {
                 if (currentByte == _delimiter)
@@ -25,10 +27,10 @@ public class MessageReader
                     break;
                 }
 
-                messageStream.WriteByte((byte)currentByte);
+                stringBuilder.Append((char)currentByte);
             }
 
-            return Encoding.UTF8.GetString(messageStream.ToArray());
+            return stringBuilder.ToString();
         }
     }
 }

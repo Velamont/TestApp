@@ -17,11 +17,13 @@ var configuration = new ConfigurationBuilder()
 var connectionString = configuration.GetConnectionString("DefaultConnection");
 
 var serviceProvider = new ServiceCollection()
+    .AddTransient<IMessageReader, MessageReader>()
     .AddTransient<UserRepository>()
     .AddDbContext<UserContext>(options => options.UseSqlServer(connectionString))
     .BuildServiceProvider();
 
 var userRepository = serviceProvider.GetService<UserRepository>();
+SeedData(userRepository);
 
 SeedData(userRepository);
 
@@ -40,7 +42,9 @@ using (var memoryStream = new MemoryStream(testData))
     Console.WriteLine($"Message 3: {message3}");
 }
 
-var user = userRepository.GetUserById(Guid.NewGuid());
+var userIdToFind = Guid.NewGuid();
+var domainToFind = "example.com";
+var user = userRepository.GetUserById(Guid.NewGuid(), domainToFind);
 Console.WriteLine($"User: {user!.Name}");
 
 var users = userRepository.GetUsersByDomain("example.com", 1, 10);
@@ -57,17 +61,17 @@ foreach (var u in usersWithTag)
 
 static void SeedData(UserRepository userRepository)
 {
-    var user1 = new User { UserId = Guid.NewGuid(), Name = "User1", Domain = "example.com" };
-    var user2 = new User { UserId = Guid.NewGuid(), Name = "User2", Domain = "example.com" };
-    var user3 = new User { UserId = Guid.NewGuid(), Name = "User3", Domain = "example.com" };
+    var user1 = new User {UserId = Guid.NewGuid(), Name = "User1", Domain = "example.com"};
+    var user2 = new User {UserId = Guid.NewGuid(), Name = "User2", Domain = "example.com"};
+    var user3 = new User {UserId = Guid.NewGuid(), Name = "User3", Domain = "example.com"};
 
-    var tag1 = new Tag { TagId = Guid.NewGuid(), Value = "Tag1", Domain = "example.com" };
-    var tag2 = new Tag { TagId = Guid.NewGuid(), Value = "Tag2", Domain = "example.com" };
-    var tag3 = new Tag { TagId = Guid.NewGuid(), Value = "Tag3", Domain = "example.com" };
+    var tag1 = new Tag {TagId = Guid.NewGuid(), Value = "Tag1", Domain = "example.com"};
+    var tag2 = new Tag {TagId = Guid.NewGuid(), Value = "Tag2", Domain = "example.com"};
+    var tag3 = new Tag {TagId = Guid.NewGuid(), Value = "Tag3", Domain = "example.com"};
 
-    var tagToUser1 = new TagToUser { UserId = user1.UserId, TagId = tag1.TagId };
-    var tagToUser2 = new TagToUser { UserId = user2.UserId, TagId = tag2.TagId };
-    var tagToUser3 = new TagToUser { UserId = user3.UserId, TagId = tag3.TagId };
+    var tagToUser1 = new TagToUser {UserId = user1.UserId, TagId = tag1.TagId};
+    var tagToUser2 = new TagToUser {UserId = user2.UserId, TagId = tag2.TagId};
+    var tagToUser3 = new TagToUser {UserId = user3.UserId, TagId = tag3.TagId};
 
     using (var context = new UserContext(new DbContextOptions<UserContext>()))
     {

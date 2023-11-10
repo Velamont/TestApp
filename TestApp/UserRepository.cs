@@ -7,17 +7,24 @@ namespace TestApp;
 public class UserRepository
 {
     private readonly UserContext _context;
-
+    
     public UserRepository(UserContext context)
     {
         _context = context;
     }
 
-    public User? GetUserById(Guid userId)
+    public User GetUserById(Guid userId, string? domain = null)
     {
-        return _context.Users.FirstOrDefault(u => u.UserId == userId);
-    }
+        var query = _context.Users.Where(u => u.UserId == userId);
 
+        if (!string.IsNullOrEmpty(domain))
+        {
+            query = query.Where(u => u.Domain == domain);
+        }
+
+        return query.FirstOrDefault();
+    }
+    
     public IEnumerable<User> GetUsersByDomain(string domain, int page, int pageSize)
     {
         return _context.Users
